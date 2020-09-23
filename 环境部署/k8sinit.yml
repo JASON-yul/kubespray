@@ -12,9 +12,9 @@
         minute: "*/1"
         state: present
     - name: apt配置|apt代理配置
-      script: script/apt-proxy.sh
+      script: ./apt-http.sh
     - name: apt配置|更换apt源（阿里云）
-      script: script/changeaptsource.sh
+      script: ./sources.sh
     - name: apt配置|更新apt缓存
       shell: "apt-get update -y"
     - name: 安装必要软件包
@@ -35,20 +35,20 @@
     - name: 配置全局代理
       shell: "echo 'export http_proxy=http://XXXXX:8080' >> /etc/profile && echo 'export https_proxy=http://XXXXX:8080' >> /etc/profile"
     - name: 创建lvm
-      script: script/lvmcreate.sh
+      script: ./lvm.sh
     - name: dhcp优化
       shell: "sed -i -r 's/^timeout 300;/timeout 15;/g' /etc/dhcp/dhclient.conf"
     - name: 修改网卡文件|使用静态IP
-      script: script/interfaces.sh
+      script: ./interfaces.sh
     - name: 禁用内核更新
       shell: "apt-mark hold linux-image-`uname -r`"
     - name: 安装docker-ce|配置docker仓库路径
       copy:
-        src: docker-config/download_docker-ce_focal.list
+        src: ./download_docker-ce_focal.list
         dest: /etc/apt/sources.list.d/download_docker-ce_focal.list
     - name: 安装docker-ce|配置docker仓库key
       copy:
-        src: docker-config/trusted_docker.gpg
+        src: ./trusted_docker.gpg
         dest: /etc/apt/trusted.gpg.d/trusted_docker.gpg
     - name: 安装docker-ce|加载apt缓存(执行失败，采用script形式调用脚本)
       shell: "apt-get update -y"
@@ -67,10 +67,10 @@
         state: directory
     - name: 配置docker|配置镜像代理
       copy:
-        src: docker-config/http_proxy_google.conf
+        src: ./http_proxy_google.conf
         dest: /etc/systemd/system/docker.service.d/http_proxy_google.conf
     - name: 配置docker|更改docker数据目录
-      script: script/docker-datadir-change.sh
+      script: ./docker-datadir.sh
     - name: 重启docker|daemon-reload
       shell: "systemctl daemon-reload"
     - name: 重启docker|docker restart
