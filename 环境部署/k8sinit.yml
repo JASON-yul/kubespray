@@ -33,7 +33,7 @@
     - name: 调整内核参数|ulimit
       shell: "echo 'ulimit -s 65536' >>/etc/profile && echo 'ulimit -n 65536' >>/etc/profile && source /etc/profile"
     - name: 配置全局代理
-      shell: "echo 'export http_proxy=http://proxy.libing.huawei.com:3128' >> /etc/profile && echo 'export https_proxy=http://proxy.libing.huawei.com:3128' >> /etc/profile"
+      shell: "echo 'export http_proxy=http://XXXXX:8080' >> /etc/profile && echo 'export https_proxy=http://XXXXX:8080' >> /etc/profile"
     - name: 创建lvm
       script: script/lvmcreate.sh
     - name: dhcp优化
