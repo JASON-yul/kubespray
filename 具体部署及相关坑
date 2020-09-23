@@ -1,0 +1,16 @@
+一、操作步骤，
+
+1.k8s初始化
+ansible-playbook -i inventory/mycluster/hosts.v2.yml  cluster.yml
+或ansible-playbook -i inventory/mycluster/hosts.v2.yml  cluster.yml -vvv（可查看具体日志内容）
+注：可重复执行
+
+2.若部署失败则可执行下属命令
+ansible-playbook -i inventory/mycluster/hosts.v2.yml  reset.yml
+
+二、可能的坑
+1.查看ip是否全部部署正确
+2.查看是否安装sshpass
+3.hosts参照kubespray/inventory/mycluster/hosts.yaml文件配置
+
+三、修改证书时间参考：https://github.com/yuyicai/update-kube-cert
