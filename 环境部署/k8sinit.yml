@@ -1,0 +1,88 @@
+---
+- hosts: k8s
+  serial: 5
+  tasks:
+    - name: 主机初始化|修改密码
+      shell: "echo 'root:JASONYL123' | chpasswd"
+    - name: 主机初始化|修改主机名
+      hostname: name={{ hostname }}
+    - name: 主机初始化|时钟同步
+      cron:
+        job: "ntpdate  szxntp01-in.huawei.com > /dev/null 2>&1"
+        minute: "*/1"
+        state: present
+    - name: apt配置|apt代理配置
+      script: script/apt-proxy.sh
+    - name: apt配置|更换apt源（阿里云）
+      script: script/changeaptsource.sh
+    - name: apt配置|更新apt缓存
+      shell: "apt-get update -y"
+    - name: 安装必要软件包
+      apt:
+        pkg:
+        - netplan
+        - sshpass
+        - nfs-common
+        state: present
+    - name: 调整内核参数|kernel.pid_max
+      shell: "sysctl -w kernel.pid_max=4194304"
+    - name: 调整内核参数|DefaultTasksMax
+      shell: "sed -i 's/#DefaultTasksMax=.*$/DefaultTasksMax=infinity/g' /etc/systemd/system.conf"
+    - name: 调整内核参数|kernel.pid_max
+      shell: "sed -i 's/#UserTasksMax=.*$/UserTasksMax=infinity/g' /etc/systemd/logind.conf"
+    - name: 调整内核参数|ulimit
+      shell: "echo 'ulimit -s 65536' >>/etc/profile && echo 'ulimit -n 65536' >>/etc/profile && source /etc/profile"
+    - name: 配置全局代理
+      shell: "echo 'export http_proxy=http://proxy.libing.huawei.com:3128' >> /etc/profile && echo 'export https_proxy=http://proxy.libing.huawei.com:3128' >> /etc/profile"
+    - name: 创建lvm
+      script: script/lvmcreate.sh
+    - name: dhcp优化
+      shell: "sed -i -r 's/^timeout 300;/timeout 15;/g' /etc/dhcp/dhclient.conf"
+    - name: 修改网卡文件|使用静态IP
+      script: script/interfaces.sh
+    - name: 禁用内核更新
+      shell: "apt-mark hold linux-image-`uname -r`"
+    - name: 安装docker-ce|配置docker仓库路径
+      copy:
+        src: docker-config/download_docker-ce_focal.list
+        dest: /etc/apt/sources.list.d/download_docker-ce_focal.list
+    - name: 安装docker-ce|配置docker仓库key
+      copy:
+        src: docker-config/trusted_docker.gpg
+        dest: /etc/apt/trusted.gpg.d/trusted_docker.gpg
+    - name: 安装docker-ce|加载apt缓存(执行失败，采用script形式调用脚本)
+      shell: "apt-get update -y"
+    - name: 安装docker-ce|安装docker-ce
+      apt:
+        pkg:
+        - docker-ce
+        state: latest
+    - name: 配置docker|停止服务
+      service:
+        name: docker
+        state: stopped
+    - name: 配置docker|创建目录
+      file:
+        path: /etc/systemd/system/docker.service.d
+        state: directory
+    - name: 配置docker|配置镜像代理
+      copy:
+        src: docker-config/http_proxy_google.conf
+        dest: /etc/systemd/system/docker.service.d/http_proxy_google.conf
+    - name: 配置docker|更改docker数据目录
+      script: script/docker-datadir-change.sh
+    - name: 重启docker|daemon-reload
+      shell: "systemctl daemon-reload"
+    - name: 重启docker|docker restart
+      service:
+        name: docker
+        state: restarted
+        enabled: yes
+    - name: unmask systemd-resolved
+      shell: "systemctl unmask systemd-resolved"
+    - name: 重启systemd-resolved
+      service:
+        name: systemd-resolved
+        state: restarted
+
+    
