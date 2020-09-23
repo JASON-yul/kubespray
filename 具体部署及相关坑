@@ -1,4 +1,23 @@
-一、操作步骤，
+一、环境部署
+具体见 “环境部署”
+1.安装ansible，python版本要用python3（低版本识别不了相关变量）
+2.当前机器配置
+Ubuntu 18.04
+Linux内核版本	4.15.0-45-generic
+物理内存	>=16G
+cpu线程数	>=8U
+docker-ce	 v19.3.12
+kubernetes v1.18.5
+kubeadm  	v1.18.5
+kubelet	  v1.18.5
+kubectl	  v1.18.5
+etcdctl	  v3.3.12
+calicoctl	v3.15.0
+master 3台以上
+etcd   3台以上（与master共用）
+node 若干根据实际情况而定
+
+二、操作步骤，
 
 1.k8s初始化
 ansible-playbook -i inventory/mycluster/hosts.v2.yml  cluster.yml
@@ -8,9 +27,42 @@ ansible-playbook -i inventory/mycluster/hosts.v2.yml  cluster.yml
 2.若部署失败则可执行下属命令
 ansible-playbook -i inventory/mycluster/hosts.v2.yml  reset.yml
 
-二、可能的坑
-1.查看ip是否全部部署正确
-2.查看是否安装sshpass
-3.hosts参照kubespray/inventory/mycluster/hosts.yaml文件配置
+三、各种坑
 
-三、修改证书时间参考：https://github.com/yuyicai/update-kube-cert
+1.ansible访问被拒绝
+
+查看ip是否全部部署正确
+
+查看是否安装sshpass
+
+2.修改证书时间参考：https://github.com/yuyicai/update-kube-cert
+
+3.按照kubespray-init里的part1、part2逐项安装
+
+hosts格式（主要用于传递变量参数）：
+192.168.1.12  ansible_ssh_user=root  ansible_ssh_pass=xxxxxx   hostname=k8s-master-v2-001
+基础命令：ansible-playbook -i hosts site.yaml
+
+4.证书地址
+etcd证书：item=/etc/ssl/etcd/ssl/node-xxxx-k8s-node-v2-037-key.pem
+其他证书：/etc/kubernetes/pki
+
+注：各种坑
+1.ip检测问题，centos7.4以上无法应用netaddr
+
+解决方案：安装netaddr：http://bmc.buildtools.inhuawei.com/buildtools/netaddr/0.7.19/
+解压后python setup.py install
+
+2.ansible无法连接问题
+解决方案：取消密码验证（取消ansible密码验证，具体）
+
+3.部分检测过不去：
+解决方案：检测可以使用跳过错误信息：ignore_errors: true（如：ip或子网掩码检测，实际应用查看百度）
+
+4.节约时间部分包可提前下载如：/tmp/releases/下的cni-plugins-linux-amd64-v0.8.6.tgz（安装过程主要问题之一）、
+
+5.证书报错
+ "msg": "error running kubectl (/usr/local/bin/kubectl --namespace=kube-system apply --force --filename=/etc/kubernetes/dns-autoscaler-clusterrole.yml)
+ command (rc=1), out='', err='Unable to connect to the server: x509: certificate signed by unknown authority\n'"
+ 解决方案：查看apiserver证书调用情况，取消内部代理
+
