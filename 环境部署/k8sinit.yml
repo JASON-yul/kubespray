@@ -4,6 +4,7 @@
   tasks:
     - name: 主机初始化|修改密码
       shell: "echo 'root:JASONYL123' | chpasswd"
+ # echo '!@#$5678'|passwd --stdin testuser
     - name: 主机初始化|修改主机名
       hostname: name={{ hostname }}
     - name: 主机初始化|时钟同步
