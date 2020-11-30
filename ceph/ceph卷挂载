@@ -1,0 +1,77 @@
+本文档用于在k8s集群上配置ceph相关组件以实现k8s集群与ceph集群的对接，Kubernetes v1.13及以上版本中需要通过ceph -csi来使用ceph rbd，参考的官方文档：https://docs.ceph.com/docs/master/rbd/rbd-kubernetes/
+
+一、创建pool（可选）
+如果需要为k8s集群创建单独的rbd pool，可以参考ceph操作文档。
+本文档所使用的ceph集群使用默认已创建的名为rbd的pool。
+二、配置CEPH-CSI
+1. 设置CEPH客户端身份验证
+为简便操作，我们直接使用ceph集群的admin用户和秘钥，可以通过查看ceph管理节点的keyring获取：
+cat /etc/ceph/ceph.client.admin.keyring
+
+[client.admin]
+        key = xxxxxxxxxxxxxxxxxxxxx
+
+2. 生成CEPH-CSI的configmap
+cat <<EOF > csi-config-map.yaml
+---
+apiVersion: v1
+kind: ConfigMap
+data:
+  config.json: |-
+    [
+      {
+        "clusterID": "xxxxxxxx",    ##ceph集群的fsid，可用ceph -s查看
+        "monitors": [
+          "192.168.1.9:6789",       ##monitors字段填入ceph集群的mon节点ip和端口，可通过ceph mon dump查看，选择v1协议（端口6789）
+          "192.168.1.8:6789",
+        ]
+      }
+    ]
+metadata:
+  name: ceph-csi-config
+EOF
+
+在k8s中生成cm：kubectl apply -f csi-config-map.yaml
+
+3. 生成CEPH-CSI CEPHX 的secret
+ceph -csi需要使用cephx凭据才能与Ceph集群进行通信，可用k8s资源secret来实现。
+
+cat <<EOF > csi-rbd-secret.yaml
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: csi-rbd-secret
+  namespace: default
+stringData:
+  userID: admin    ##本文档使用admin用户，如有自建用户，则改为自建用户名
+  userKey: xxxxxxxxxxxxxx     ##即/etc/ceph/ceph.client.admin.keyring中的key（base64编码），自建用户请使用自建用户的keyring
+EOF
+
+在k8s中生成secret：kubectl apply -f csi-rbd-secret.yaml
+
+4. 配置CEPH-CSI插件
+1）此步会创建所需的Kubernetes资源对象ServiceAccount和RBAC ClusterRole / ClusterRoleBinding 。这些资源对象不一定需要针对您的Kubernetes环境进行自定义，因此可以从ceph -csi部署YAML中按原样使用：
+kubectl apply -f https://raw.githubusercontent.com/ceph/ceph-csi/master/deploy/rbd/kubernetes/csi-provisioner-rbac.yaml
+kubectl apply -f https://raw.githubusercontent.com/ceph/ceph-csi/master/deploy/rbd/kubernetes/csi-nodeplugin-rbac.yaml
+
+2）最后，创建ceph-csi设置程序和节点插件。除了ceph-csi容器发行版本以外，这些对象不一定需要针对您的Kubernetes环境进行自定义，因此可以从ceph -csi部署YAML中按原样使用：
+wget https://raw.githubusercontent.com/ceph/ceph-csi/master/deploy/rbd/kubernetes/csi-rbdplugin-provisioner.yaml
+注意需要将文件中定义的挂载卷的以下几行注释掉：
+ #- name: ceph-csi-encryption-kms-config
+          #mountPath: /etc/ceph-csi-encryption-kms-config/
+
+# - name: ceph-csi-encryption-kms-config
+          #configMap:
+          #name: ceph-csi-encryption-kms-config
+kubectl apply -f csi-rbdplugin-provisioner.yaml
+
+wget https://raw.githubusercontent.com/ceph/ceph-csi/master/deploy/rbd/kubernetes/csi-rbdplugin.yaml
+注意需要将文件中定义的挂载卷的以下几行注释掉：
+ #- name: ceph-csi-encryption-kms-config
+          #mountPath: /etc/ceph-csi-encryption-kms-config/
+
+# - name: ceph-csi-encryption-kms-config
+          #configMap:
+          #name: ceph-csi-encryption-kms-config
+kubectl apply -f csi-rbdplugin.yaml
