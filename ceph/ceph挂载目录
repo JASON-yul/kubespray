@@ -1,0 +1,28 @@
+rbd挂载：
+1. 创建基础rbd镜像
+rbd create rbd/gitfiles_base --size 100G --image-feature layering,exclusive-lock
+2. 制作镜像
+1）map镜像：rbd map rbd/gitfiles_base  (显示map到/dev/rbd0)
+2）更新镜像UUID：xfs_admin -U generate /dev/rbd0
+3）格式化镜像：mkfs.xfs /dev/rbd0
+4）挂载镜像到本地：mount /dev/rbd0 /mnt/data_disk/git_files/mix
+5）rsync同步文件到目录：rsync -a -W --progress --partial --include=*.tar.gz --include=*.sh /mnt/data_disk/sftp/git_files/mix/  /mnt/data_disk/git_files/mix/
+6）卸载本地目录：umount /mnt/data_disk/git_files/mix
+7）unmap镜像：rbd unmap  rbd/gitfiles_base
+3. 创建快照
+rbd snap create rbd/gitfiles_base@`date +%Y%m%d%H%M`
+4. 基于快照clone镜像：
+1）保护快照：rbd snap protect rbd/gitfiles_base@202008141008
+2）clone快照：rbd clone rbd/gitfiles_base@202008141008 chengdu-kubernetes-sersync-v1-001
+3）还原镜像：rbd flatten chengdu-kubernetes-sersync-v1-001
+5. 服务器上使用镜像：
+1）map镜像：rbd map rbd/chengdu-kubernetes-sersync-v1-001  (显示map到/dev/rbd0)
+2）更新镜像UUID：xfs_admin -U generate /dev/rbd0
+使用rbdmap.service实现开机自动挂载
+3）编辑/etc/ceph/rbdmap文件：
+rbd/chengdu-kubernetes-sersync-v1-001 id=admin,keyring=/etc/ceph/ceph.client.admin.keyring
+4）编辑/ect/fstab文件：
+/dev/rbd/rbd/chengdu-kubernetes-sersync-v1-001   /mnt/data_disk/git_files/mix  xfs  noauto 0 0
+5）启动rbdmap.service服务并设为开机自启动：
+systemctl start rbdmap 
+systemctl enable rbdmap( /lib/systemd/systemd-sysv-install enable rbdmap)
