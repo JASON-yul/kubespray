@@ -90,4 +90,6 @@
         name: systemd-resolved
         state: restarted
 
-    
+   
+   参考：https://developer.aliyun.com/mirror/docker-ce?spm=a2c6h.13651102.0.0.3e221b11dKDaHJ
+         https://developer.aliyun.com/mirror/ubuntu?spm=a2c6h.13651102.0.0.3e221b11dKDaHJ
