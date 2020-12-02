@@ -9,7 +9,7 @@
       hostname: name={{ hostname }}
     - name: 主机初始化|时钟同步
       cron:
-        job: "ntpdate  SSSSSSSSSSS > /dev/null 2>&1"
+        job: "ntpdate  xxxx > /dev/null 2>&1"
         minute: "*/1"
         state: present
     - name: apt配置|apt代理配置
@@ -24,6 +24,10 @@
         - netplan
         - sshpass
         - nfs-common
+        - expect
+        - rsync
+        - sysstat
+        - dstat        
         state: present
     - name: 调整内核参数|kernel.pid_max
       shell: "sysctl -w kernel.pid_max=4194304"
