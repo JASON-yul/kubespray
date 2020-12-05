@@ -1,6 +1,9 @@
 一、环境部署
 具体见 “环境部署”
 1.安装ansible，python版本要用python3（低版本识别不了相关变量）
+注意：ansible一定要安装最新的
+具体参考：https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html#installing-ansible-on-ubuntu
+提供路径位置：https://stackoverflow.com/questions/47159193/why-does-ansible-show-error-no-action-detected-in-task-error
 2.当前机器配置
 Ubuntu 18.04
 Linux内核版本	4.15.0-45-generic
