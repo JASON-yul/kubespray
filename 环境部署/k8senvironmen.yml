@@ -99,3 +99,57 @@
    
    参考：https://developer.aliyun.com/mirror/docker-ce?spm=a2c6h.13651102.0.0.3e221b11dKDaHJ
          https://developer.aliyun.com/mirror/ubuntu?spm=a2c6h.13651102.0.0.3e221b11dKDaHJ
+
+
+
+k8s初始化结束后只有kubeadm
+所以还有执行
+cephkubelet.yaml
+---
+- hosts: k8s
+  #serial: 10
+  tasks:
+    - name: 安装ceph客户端|更换apt源
+      script: script/changecephaptsource.sh
+    - name: 安装ceph客户端|更新apt缓存
+      shell: "apt-get update"
+    - name: 安装ceph客户端|安装软件包
+      apt:
+        pkg:
+        - ceph-common
+        - rbd-nbd
+        state: present
+      ignore_errors: ture
+    - name: 安装ceph客户端|加载nbd模块
+      shell: "modprobe nbd"
+    - name: 安装ceph客户端|开机自动加载nbd模块
+      script: script/modprobenbd.sh
+    - name: 取消全局代理|修改/etc/profile
+      shell: "sed -i -r 's/^.*http.*/#&/g' /etc/profile"
+    - name: 取消全局代理|unset 代理变量
+      shell: "unset http_proxy && unset https_proxy"
+    - name: 配置kubelet|停止kubelet服务
+      service:
+        name: kubelet
+        state: stopped
+    - name: 配置kubelet|更改kubelet数据目录
+      script: script/kubelet_dir_move.sh
+    - name: 重启kubelet|restart kubelet
+      service:
+        name: kubelet
+        state: restarted
+    - name: 配置docker|配置默认镜像仓库
+      copy:
+        src: docker-config/insecure_registries.conf
+        dest: /etc/systemd/system/docker.service.d/insecure_registries.conf
+    - name: 配置docker|配置镜像代理
+      copy:
+        src: docker-config/http_proxy.conf
+        dest: /etc/systemd/system/docker.service.d/http_proxy.conf
+    - name: 重启docker|daemon-reload
+      shell: "systemctl daemon-reload"
+    - name: 重启docker|docker restart
+      service:
+        name: docker
+        state: restarted
+        enabled: yes
