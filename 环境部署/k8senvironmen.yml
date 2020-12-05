@@ -49,12 +49,18 @@
       shell: "apt-mark hold linux-image-`uname -r`"
     - name: 安装docker-ce|配置docker仓库路径
       copy:
-        src: ./download_docker-ce_focal.list
-        dest: /etc/apt/sources.list.d/download_docker-ce_focal.list
+        src: /etc/apt/sources.list
+        dest: /etc/apt/sources.list
     - name: 安装docker-ce|配置docker仓库key
       copy:
-        src: ./trusted_docker.gpg
-        dest: /etc/apt/trusted.gpg.d/trusted_docker.gpg
+        src: /etc/apt/trusted.gpg
+        dest: /etc/apt/trusted.gpg
+    - name: 安装docker-ce|安装工具
+        shell: "apt-get -y install apt-transport-https ca-certificates curl software-properties-common"
+    - name: 安装docker-ce|安装证书
+        shell: "curl -fsSL https://mirrors.aliyun.com/docker-ce/linux/ubuntu/gpg | sudo apt-key add -"
+    - name: 安装docker-ce|写入源
+      shell: 'add-apt-repository "deb [arch=amd64] https://mirrors.aliyun.com/docker-ce/linux/ubuntu $(lsb_release -cs) stable"'
     - name: 安装docker-ce|加载apt缓存(执行失败，采用script形式调用脚本)
       shell: "apt-get update -y"
     - name: 安装docker-ce|安装docker-ce
