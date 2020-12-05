@@ -1,4 +1,4 @@
-具体安装详见：环境部署和具体操作
+具体安装详见仓库目录：环境部署、具体部署及相关坑
 
 # Deploy a Production Ready Kubernetes Cluster
 
