@@ -21,3 +21,7 @@ quay.io/external_storage/rbd-provisioner                         latest
 jettech/kube-webhook-certgen                                     v1.5.1              
 quay.io/cephcsi/cephcsi                                          canary
 k8s.gcr.io/ingress-nginx/controller                              <none>
+
+安装操作说明
+https://cloud.tencent.com/developer/article/1527644
+https://cloud.tencent.com/developer/article/1352561
