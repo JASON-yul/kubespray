@@ -1,3 +1,5 @@
+详细信息可参见（云原生）：https://www.yuque.com/u1835249/xx770n/gxbsna
+
 一、环境部署
 具体见 “环境部署”
 1.安装ansible，python版本要用python3（低版本识别不了相关变量）
@@ -27,12 +29,62 @@ master 3台以上
 etcd   3台以上（与master共用）
 node 若干根据实际情况而定
 
+3.公司内部配置代理
+vim /etc/wgetrc
+ftp_proxy = http://xxx
+http_proxy = http://xxxx
+https_proxy =http://xxxx
+
+vim /etc/apt/apt.conf
+Acquire::http::Proxy "http://xxxx"
+Acquire::https::Proxy "http://xxxx"
+
+vim /etc/systemd/system/docker.service.d/http_proxy.conf
+Environment="HTTP_PROXY=http:/xxxxx"
+Environment="HTTPS_PROXY=http://xxxxx"
+Environment="NO_PROXY=xxxx"  (本地和公司内部相关仓库)
+
+systemctl daemon-reload
+systemctl restart docker
+
+4.阿里源
+http://mirrors.tools.huawei.com/
+vim /etc/apt/sources.list
+deb http://mirrors.aliyun.com/ubuntu/ bionic main restricted universe multiverse
+deb-src http://mirrors.aliyun.com/ubuntu/ bionic main restricted universe multiverse
+
+deb http://mirrors.aliyun.com/ubuntu/ bionic-security main restricted universe multiverse
+deb-src http://mirrors.aliyun.com/ubuntu/ bionic-security main restricted universe multiverse
+
+deb http://mirrors.aliyun.com/ubuntu/ bionic-updates main restricted universe multiverse
+deb-src http://mirrors.aliyun.com/ubuntu/ bionic-updates main restricted universe multiverse
+
+deb http://mirrors.aliyun.com/ubuntu/ bionic-proposed main restricted universe multiverse
+deb-src http://mirrors.aliyun.com/ubuntu/ bionic-proposed main restricted universe multiverse
+
+deb http://mirrors.aliyun.com/ubuntu/ bionic-backports main restricted universe multiverse
+deb-src http://mirrors.aliyun.com/ubuntu/ bionic-backports main restricted universe multiverse
+
+5.docker配置
+vim /etc/docker/daemon.json
+{
+   "data-root": "/mnt/data_disk/docker",
+   "live-restore": true,
+   "log-opts": {"max-size":"100m", "max-file":"10"},
+   "insecure-registries":["quay.io","registry.cn-beijing.aliyuncs.com","k8s.gcr.io","https://hub-mirror.c.163.com","https://mirror.baidubce.com"]
+}
+
+systemctl daemon-reload
+systemctl restart docker
+
 二、操作步骤，
 
 1.k8s初始化
 ansible-playbook -i inventory/mycluster/hosts.v2.yml  cluster.yml
 或ansible-playbook -i inventory/mycluster/hosts.v2.yml  cluster.yml -vvv（可查看具体日志内容）
-注：可重复执行
+注：可重复执行，网速慢的情况下需要多装几次
+
+规避命令ignore_errors: yes
 
 2.若部署失败则可执行下属命令
 ansible-playbook -i inventory/mycluster/hosts.v2.yml  reset.yml
