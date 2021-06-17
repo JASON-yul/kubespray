@@ -54,7 +54,7 @@ kube-node
 calico-rr
 
 [all:vars]
-#以下配置
+#以下配置集群机器的应用python版本、访问方式、登录账号、密码及依赖
 ansible_python_interpreter = /usr/bin/python3
 ansible_connection=ssh
 ansible_user=root
