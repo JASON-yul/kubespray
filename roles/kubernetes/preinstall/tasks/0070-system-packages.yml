@@ -16,7 +16,7 @@
   when: ansible_os_family == "Debian"
   tags:
     - bootstrap-os
-
+  #ignore_errors: yes
 - name: Remove legacy docker repo file
   file:
     path: "{{ yum_repo_dir }}/docker.repo"
@@ -82,7 +82,7 @@
   when: not (ansible_os_family in ["Flatcar Container Linux by Kinvolk", "ClearLinux"] or is_fedora_coreos)
   tags:
     - bootstrap-os
-
+  #ignore_errors: yes
 - name: Install ipvsadm for ClearLinux
   swupd:
     name: ipvsadm
