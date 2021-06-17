@@ -80,14 +80,21 @@ systemctl restart docker
 二、操作步骤，
 
 1.k8s初始化
-ansible-playbook -i inventory/mycluster/hosts.v2.yml  cluster.yml
-或ansible-playbook -i inventory/mycluster/hosts.v2.yml  cluster.yml -vvv（可查看具体日志内容）
+ansible-playbook -i inventory/sample/hosts.yml  cluster.yml
+或ansible-playbook -i inventory/sample/hosts.yml  cluster.yml -vvv（可查看具体日志内容）
 注：可重复执行，网速慢的情况下需要多装几次
 
 规避命令ignore_errors: yes
 
 2.若部署失败则可执行下属命令
-ansible-playbook -i inventory/mycluster/hosts.v2.yml  reset.yml
+ansible-playbook -i inventory/mycluster/hosts.yml  reset.yml
+
+3.可能需要改动文件
+inventory/sample/group_vars/all/docker.yml
+inventory/sample/group_vars/all/all.yml
+/kubespray-master/roles/kubernetes/preinstall/tasks/0070-system-packages.yml
+/kubespray-master/roles/container-engine/docker/tasks/main.yml
+inventory/sample/hosts.yaml
 
 三、各种坑
 
