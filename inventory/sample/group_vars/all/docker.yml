@@ -53,7 +53,7 @@ docker_insecure_registries:
 docker_registry_mirrors:
   - https://registry.docker-cn.com
   - https://mirror.aliyuncs.com
-  ：wq
+
 ## If non-empty will override default system MountFlags value.
 ## This option takes a mount propagation flag: shared, slave
 ## or private, which control whether mounts in the file system
