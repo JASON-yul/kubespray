@@ -75,7 +75,7 @@
   delay: "{{ retry_stagger | d(3) }}"
   with_items: "{{ docker_repo_key_info.repo_keys }}"
   when: not (ansible_os_family in ["Flatcar Container Linux by Kinvolk", "RedHat", "Suse", "ClearLinux"] or is_ostree)
-
+  #ignore_errors: true
 - name: ensure docker-ce repository is enabled
   action: "{{ docker_repo_info.pkg_repo }}"
   args:
@@ -83,7 +83,7 @@
     state: present
   with_items: "{{ docker_repo_info.repos }}"
   when: not (ansible_os_family in ["Flatcar Container Linux by Kinvolk", "RedHat", "Suse", "ClearLinux"] or is_ostree) and (docker_repo_info.repos|length > 0)
-
+  #ignore_errors: yes
 - name: ensure docker-engine repository public key is installed
   action: "{{ dockerproject_repo_key_info.pkg_key }}"
   args:
@@ -98,7 +98,7 @@
   when:
     - not (ansible_os_family in ["Flatcar Container Linux by Kinvolk", "RedHat", "Suse", "ClearLinux"] or is_ostree)
     - use_docker_engine is defined and use_docker_engine
-
+  #ignore_errors: yes
 - name: ensure docker-engine repository is enabled
   action: "{{ dockerproject_repo_info.pkg_repo }}"
   args:
@@ -108,7 +108,7 @@
   when:
     - use_docker_engine is defined and use_docker_engine
     - not (ansible_os_family in ["Flatcar Container Linux by Kinvolk", "RedHat", "Suse", "ClearLinux"] or is_ostree) and (dockerproject_repo_info.repos|length > 0)
-
+  #ignore_errors: yes
 - name: Configure docker repository on Fedora
   template:
     src: "fedora_docker.repo.j2"
@@ -148,7 +148,7 @@
     dest: "{{ docker_yum_conf }}"
     remote_src: yes
   when: ansible_distribution in ["CentOS","RedHat","OracleLinux"] and not is_ostree
-
+  #ignore_errors: true
 - name: Edit copy of yum.conf to set obsoletes=0
   ini_file:
     path: "{{ docker_yum_conf }}"
@@ -157,7 +157,7 @@
     value: "0"
     no_extra_spaces: true
   when: ansible_distribution in ["CentOS","RedHat","OracleLinux"] and not is_ostree
-
+  #ignore_errors: true
 - name: ensure docker packages are installed
   action: "{{ docker_package_info.pkg_mgr }}"
   args:
@@ -173,7 +173,7 @@
   with_items: "{{ docker_package_info.pkgs }}"
   notify: restart docker
   when: not (ansible_os_family in ["Flatcar Container Linux by Kinvolk", "ClearLinux"] or is_ostree) and (docker_package_info.pkgs|length > 0)
-  ignore_errors: true
+  #ignore_errors: true
 
 - name: Ensure docker packages are installed
   action: "{{ docker_package_info.pkg_mgr }}"
@@ -196,21 +196,21 @@
     - ansible_distribution == 'Ubuntu'
   register: available_packages
   check_mode: false
-
+  #ignore_errors: true
 - name: show available packages on ubuntu
   fail:
     msg: "{{ available_packages }}"
   when:
     - docker_task_result is failed
     - ansible_distribution == 'Ubuntu'
-
+  #ignore_errors: true
 # This is required to ensure any apt upgrade will not break kubernetes
 - name: Tell Debian hosts not to change the docker version with apt upgrade
   dpkg_selections:
     name: docker-ce
     selection: hold
   when: ansible_os_family in ["Debian"]
-
+  #ignore_errors: true
 - name: ensure docker started, remove our config if docker start failed and try again
   block:
     - name: ensure service is started if docker packages are already present
@@ -231,6 +231,7 @@
         - /etc/systemd/system/docker.service.d/docker-dns.conf
         - /etc/systemd/system/docker.service.d/docker-orphan-cleanup.conf
       notify: restart docker
+      #ignore_errors: yes
 
 - name: flush handlers so we can wait for docker to come up
   meta: flush_handlers
@@ -255,9 +256,9 @@
   loop_control:
     loop_var: docker_plugin
 
-- name: Set docker systemd config
-  import_tasks: systemd.yml
-
+#- name: Set docker systemd config
+#  import_tasks: systemd.yml
+#  ignore_errors: yes
 - name: ensure docker service is started and enabled
   service:
     name: "{{ item }}"
