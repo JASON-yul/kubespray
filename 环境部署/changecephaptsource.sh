@@ -19,6 +19,7 @@ EOF
 
 
 注：Ubuntu18.04系统
+bionic 由命令lsb_release -cs获取
 
 deb http://mirrors.aliyun.com/ubuntu/ bionic main restricted universe multiverse
 deb-src http://mirrors.aliyun.com/ubuntu/ bionic main restricted universe multiverse
