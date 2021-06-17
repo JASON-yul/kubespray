@@ -1,7 +1,7 @@
 详细信息可参见（云原生）：https://www.yuque.com/u1835249/xx770n/gxbsna
 
 一、环境部署
-具体见 “环境部署”
+具体见   “环境部署”
 1.安装ansible，python版本要用python3（低版本识别不了相关变量）
 
 注意：ansible一定要安装最新的
