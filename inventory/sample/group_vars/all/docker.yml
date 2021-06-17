@@ -45,7 +45,15 @@ docker_rpm_keepcache: 0
 # docker_registry_mirrors:
 #   - https://registry.docker-cn.com
 #   - https://mirror.aliyuncs.com
-
+docker_insecure_registries:
+  - xxx.xx.xx.224:5000
+  - 10.xxx.xxx.31:5000
+  - 100.xxx.xxx.65
+  
+docker_registry_mirrors:
+  - https://registry.docker-cn.com
+  - https://mirror.aliyuncs.com
+  ：wq
 ## If non-empty will override default system MountFlags value.
 ## This option takes a mount propagation flag: shared, slave
 ## or private, which control whether mounts in the file system
